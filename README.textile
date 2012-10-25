@@ -1,26 +1,6 @@
-h1. What does it do?
+h1. What is it? What does it do?
 
-This redmine plugin adds a macro in your redmine wikis, which allows the embedding of etherpads.  It provides the same result as "this hack":http://rschulte.com/blog/2011/etherpad-and-redmine-hack-how-we-are-embedding-collaborative-documents-redmine, but more easily, and without the unsafety of allowing arbitrary html.
-
-h2. Macro: etherpad()
-
-To use, just add @{{etherpad(nameOfPad)}}@ to the issue/wiki/page in which to embed a pad.
-
-Requires at least one argument, the name of the etherpad to embed.
-
-Other arguments should be listed in "key=val" format, and include:
-
-* @width@: the width of the iframe (e.g. "640px", "100%"), default=640px.
-* @height@: the height of the iframe (e.g. ("800px"), default=480px.
-* @showControls@: true/false (default true)
-* @showChat@: true/false (default true)
-* @showLineNumbers@: true/false (default false)
-* @useMonospaceFont@: true/false (default false)
-* @noColors@: true/false (default false)
-
-Example:
-
-<pre><code>{{etherpad(myHotPad, useMonospaceFont=true, width=100%)}}</code></pre>
+Basically the same as "this plugin":https://github.com/yourcelf/redmine_etherpad, but with authentication using the Etherpad Lite HTTP API. Both plugins can be used simultaneously.
 
 h2. Installation
 
@@ -28,7 +8,8 @@ Navigate to:
 @[redmine_install_path]/vendors/plugins@
 
 Clone this repo:
-@git clone git://github.com/yourcelf/redmine_etherpad.git@
+@git clone git://github.com/draexler/redmine_etherpad.git redmine_etherpad_auth@
+(The redmine_etherpad_auth in the end is important, otherwise you overwrite the old plugin.)
 
 h3. Configuration
 
@@ -40,13 +21,5 @@ Add an "etherpad" configuration section to "config/configuration.yml" in which y
     apiKey: xyz...
 </code></pre>
 
-You can also list any of the embed arguments to replace defaults, for example:
-
-<pre><code>default:
-  etherpad:
-    host: https://etherpad.example.com
-    showLineNumbers: true
-    useMonospaceFont: true
-</code></pre>
-
+The rest works exactly like "the old plugin":https://github.com/yourcelf/redmine_etherpad
 
