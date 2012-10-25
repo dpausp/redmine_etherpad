@@ -64,25 +64,25 @@ Redmine::Plugin.register :redmine_etherpad_auth do
       end
 
 
-      uri = URI('http://fg-cn-pgsp1.cs.upb.de:9001/api/1/createAuthorIfNotExistsFor')
+      uri = URI(conf['host'] + '/api/1/createAuthorIfNotExistsFor')
       params = { 'apikey' => controls['apiKey'], 'name' => controls['userName'], 'authorMapper' => controls['userId'] }
       res = Net::HTTP.post_form(uri, params)
       resdata = JSON.parse(res.body)
       controls['authorId'] = resdata['data']['authorID']
 
-      uri = URI('http://fg-cn-pgsp1.cs.upb.de:9001/api/1/createGroupIfNotExistsFor')
+      uri = URI(conf['host'] + '/api/1/createGroupIfNotExistsFor')
       params = { 'apikey' => controls['apiKey'], 'groupMapper' => controls['projectId'] }
       res = Net::HTTP.post_form(uri, params)
       resdata = JSON.parse(res.body)
       controls['groupId'] = resdata['data']['groupID']
 
-      uri = URI('http://fg-cn-pgsp1.cs.upb.de:9001/api/1/createGroupPad')
+      uri = URI(conf['host'] + '/api/1/createGroupPad')
       params = { 'apikey' => controls['apiKey'], 'groupID' => controls['groupId'], 'padName' => padname }
       res = Net::HTTP.post_form(uri, params)
       resdata = JSON.parse(res.body)
       controls['groupPad'] = resdata['data']['padID']
 
-      uri = URI('http://fg-cn-pgsp1.cs.upb.de:9001/api/1/createSession')
+      uri = URI(conf['host'] + '/api/1/createSession')
       params = { 'apikey' => controls['apiKey'], 'groupID' => controls['groupId'], 'authorID' => controls['authorId'], 'validUntil' => Time.now.to_i+(60*60) }
       res = Net::HTTP.post_form(uri, params)
       resdata = JSON.parse(res.body)

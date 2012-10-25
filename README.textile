@@ -32,11 +32,12 @@ Clone this repo:
 
 h3. Configuration
 
-Add an "etherpad" configuration section to "config/configuration.yml" in which you define the etherpad host to use:
+Add an "etherpad" configuration section to "config/configuration.yml" in which you define the etherpad host to use and the API key:
 
 <pre><code>default:
   etherpad:
     host: https://etherpad.example.com
+    apiKey: xyz...
 </code></pre>
 
 You can also list any of the embed arguments to replace defaults, for example:
