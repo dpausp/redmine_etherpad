@@ -1,25 +1,51 @@
-h1. What is it? What does it do?
+h1. Redmine Etherpad Auth
 
-Basically the same as "this plugin":https://github.com/yourcelf/redmine_etherpad, but with authentication using the Etherpad Lite HTTP API. Both plugins can be used simultaneously.
+Basically the same as "this plugin":https://github.com/draexler/redmine_etherpad and "the original plugin":https://github.com/yourcelf/redmine_etherpad 
+
+h2. Requirements
+
+* Redmine 2.1+ ("previous versions":https://github.com/yourcelf/redmine_etherpad)
+* etherpad-lite (API >= 1)
 
 h2. Installation
 
 Navigate to:
-@[redmine_install_path]/vendors/plugins@
+<pre>cd ${REDMINE_BASE_DIR}/vendors/plugins
+git clone git://github.com/toanju/redmine_etherpad.git redmine_etherpad_auth
+</pre>
 
-Clone this repo:
-@git clone git://github.com/draexler/redmine_etherpad.git redmine_etherpad_auth@
-(The redmine_etherpad_auth in the end is important, otherwise you overwrite the old plugin.)
+(The redmine_etherpad_auth in the end is important, otherwise you overwrite the original.)
 
-h3. Configuration
+
+h2. Macro: etherpad()
+
+To use, just add @{{etherpad(nameOfPad)}}@ to the issue/wiki/page in which to embed a pad.
+
+Requires at least one argument, the name of the etherpad to embed.
+
+Other arguments should be listed in "key=val" format, and include:
+
+* @width@: the width of the iframe (e.g. "640px", "100%"), default=640px.
+* @height@: the height of the iframe (e.g. ("800px"), default=480px.
+* @showControls@: true/false (default true)
+* @showChat@: true/false (default true)
+* @showLineNumbers@: true/false (default false)
+* @useMonospaceFont@: true/false (default false)
+* @noColors@: true/false (default false)
+* @apiKey@: "your_etherpad_api_key"
+* @verifySSL@: true/false (default true)
+
+Example:
+
+<pre><code>{{etherpad(myHotPad, useMonospaceFont=true, width=100%)}}</code></pre>
+
+h2. Configuration
 
 Add an "etherpad" configuration section to "config/configuration.yml" in which you define the etherpad host to use and the API key:
 
 <pre><code>default:
-  etherpad:
+  etherpadauth:
     host: https://etherpad.example.com
-    apiKey: xyz...
+    apiKey: "your_etherpad_api_key"
 </code></pre>
-
-The rest works exactly like "the old plugin":https://github.com/yourcelf/redmine_etherpad
 
