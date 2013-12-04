@@ -81,17 +81,17 @@ Redmine::Plugin.register :redmine_etherpad_auth do
       end
 
       params = { 'apikey' => controls['apiKey'], 'name' => controls['userName'], 'authorMapper' => controls['userId'].to_s() }
-      res = http.post('/api/1/createAuthorIfNotExistsFor', hash_to_querystring(params))
+      res = http.post((uri.path.nil? ? '' : uri.path) + '/api/1/createAuthorIfNotExistsFor', hash_to_querystring(params))
       resdata = JSON.parse(res.body)
       controls['authorId'] = resdata['data']['authorID']
 
       params = { 'apikey' => controls['apiKey'], 'groupMapper' => controls['projectId'].to_s() }
-      res = http.post('/api/1/createGroupIfNotExistsFor', hash_to_querystring(params))
+      res = http.post((uri.path.nil? ? '' : uri.path) + '/api/1/createGroupIfNotExistsFor', hash_to_querystring(params))
       resdata = JSON.parse(res.body)
       controls['groupId'] = resdata['data']['groupID']
 
       params = { 'apikey' => controls['apiKey'], 'groupID' => controls['groupId'].to_s(), 'padName' => padname }
-      res = http.post('/api/1/createGroupPad', hash_to_querystring(params))
+      res = http.post((uri.path.nil? ? '' : uri.path) + '/api/1/createGroupPad', hash_to_querystring(params))
       resdata = JSON.parse(res.body)
 
       if resdata['code'] == 1
@@ -104,7 +104,7 @@ Redmine::Plugin.register :redmine_etherpad_auth do
       update_session = false
       if not cookies[:sessionID].nil?
         params = { 'apikey' => controls['apiKey'], 'sessionID' => cookies[:sessionID] }
-        res = http.post('/api/1/getSessionInfo', hash_to_querystring(params))
+        res = http.post((uri.path.nil? ? '' : uri.path) + '/api/1/getSessionInfo', hash_to_querystring(params))
         resdata = JSON.parse(res.body)
         if resdata['code'] == 1 or resdata['data']['validUntil'].to_i <= Time.now.to_i
           update_session = true
@@ -115,7 +115,7 @@ Redmine::Plugin.register :redmine_etherpad_auth do
       if cookies[:sessionID].nil? or update_session
         expires = Time.now + 3600
         params = { 'apikey' => controls['apiKey'], 'groupID' => controls['groupId'], 'authorID' => controls['authorId'], 'validUntil' => expires.to_i }
-        res = http.post('/api/1/createSession', hash_to_querystring(params))
+        res = http.post((uri.path.nil? ? '' : uri.path) + '/api/1/createSession', hash_to_querystring(params))
         resdata = JSON.parse(res.body)
         controls['sessionId'] = resdata['data']['sessionID']
 
