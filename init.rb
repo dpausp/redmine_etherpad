@@ -1,7 +1,3 @@
-#
-# vendor/plugins/redmine_etherpad_auth/init.rb
-#
-
 require 'redmine'
 require 'uri'
 require 'net/http'
@@ -16,20 +12,20 @@ def hash_to_querystring(hash)
   end
 end
 
-Redmine::Plugin.register :redmine_etherpad_auth do
-  name 'Redmine Etherpad plugin with Group Authentication'
-  author 'Tobias Jungel'
-  description 'Embed etherpad-lite pads in redmine wikis with authentication. Based on the redmine_etherpad plugin by Charlie DeTar and redmine_etherpad_auth by Martin Draexler'
-  version '0.1'
-  url 'https://github.com/toanju/redmine_etherpad'
-  author_url 'https://github.com/toanju'
+Redmine::Plugin.register :redmine_etherpad do
+  name 'Redmine Etherpad (lite) plugin'
+  author 'Tobias Stenzel'
+  description 'Provides an etherpad macro for embedding pads with Redmine auth integration (more features will follow...)'
+  version '0.0'
+  url 'https://github.com/dpausp/redmine_etherpad'
+  author_url 'https://github.com/dpausp'
 
   Redmine::WikiFormatting::Macros.register do
     desc "Embed etherpad with auth"
-    macro :etherpadauth do |obj, args|
-      conf = Redmine::Configuration['etherpadauth']
+    macro :etherpad do |obj, args|
+      conf = Redmine::Configuration['etherpad']
       unless conf and conf['host']
-        raise "Please define etherpadauth parameters in configuration.yml."
+        raise "Please define etherpad parameters in configuration.yml."
       end
 
       # Defaults from configuration.
