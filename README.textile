@@ -1,21 +1,18 @@
-h1. Redmine Etherpad Auth
+h1. Redmine Etherpad
 
-Basically the same as "this plugin":https://github.com/draexler/redmine_etherpad and "the original plugin":https://github.com/yourcelf/redmine_etherpad 
+Based on https://github.com/toanju/redmine_etherpad, which is based on 
 
 h2. Requirements
 
-* Redmine 2.1+ ("previous versions":https://github.com/yourcelf/redmine_etherpad)
+* Redmine 2.1+
 * etherpad-lite (API >= 1)
 
 h2. Installation
 
 Navigate to:
-<pre>cd ${REDMINE_BASE_DIR}/vendors/plugins
-git clone git://github.com/toanju/redmine_etherpad.git redmine_etherpad_auth
+<pre>cd ${REDMINE_BASE_DIR}/plugins
+git clone git://github.com/dpausp/redmine_etherpad.git redmine_etherpad
 </pre>
-
-(The redmine_etherpad_auth in the end is important, otherwise you overwrite the original.)
-
 
 h2. Macro: etherpad()
 
@@ -44,7 +41,7 @@ h2. Configuration
 Add an "etherpad" configuration section to "config/configuration.yml" in which you define the etherpad host to use and the API key:
 
 <pre><code>default:
-  etherpadauth:
+  etherpad:
     host: https://etherpad.example.com
     apiKey: "your_etherpad_api_key"
 </code></pre>
