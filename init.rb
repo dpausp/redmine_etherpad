@@ -4,6 +4,7 @@ require 'net/http'
 require 'json'
 require 'time'
 require 'date'
+require 'pry'
 
 def hash_to_querystring(hash)
   hash.keys.inject('') do |query_string, key|
@@ -68,9 +69,12 @@ Redmine::Plugin.register :redmine_etherpad do
       end
 
       uri = URI.parse(conf['host'])
+      #binding.pry
       http = Net::HTTP.new(uri.host, uri.port)
-      if uri.scheme.casecmp("https")
+      unless uri.scheme.casecmp("https")
         http.use_ssl = true
+      else
+        http.use_ssl = false
       end
       if not controls['verifySSL']
         http.verify_mode = OpenSSL::SSL::VERIFY_NONE
@@ -104,6 +108,8 @@ Redmine::Plugin.register :redmine_etherpad do
         resdata = JSON.parse(res.body)
         if resdata['code'] == 1 or resdata['data']['validUntil'].to_i <= Time.now.to_i
           update_session = true
+        else
+          session_id = cookies[:sessionID]
         end
       end
 
@@ -113,18 +119,20 @@ Redmine::Plugin.register :redmine_etherpad do
         params = { 'apikey' => controls['apiKey'], 'groupID' => controls['groupId'], 'authorID' => controls['authorId'], 'validUntil' => expires.to_i }
         res = http.post((uri.path.nil? ? '' : uri.path) + '/api/1/createSession', hash_to_querystring(params))
         resdata = JSON.parse(res.body)
-        controls['sessionId'] = resdata['data']['sessionID']
+        controls['sessionId'] = session_id = resdata['data']['sessionID']
 
         cookies[:sessionID] = { :value => controls['sessionId'], :host => uri.host, :expires => expires }
-        if http.use_ssl
+        if http.use_ssl?
           cookies[:sessionID] =  { :value => controls['sessionId'], :host => uri.host, :expires => expires, :secure => true }
         end
       end
 
       width = controls.delete('width')
       height = controls.delete('height')
-
-      return CGI::unescapeHTML("<iframe src='#{conf['host']}/p/#{URI.encode(controls['groupPad'])}?#{hash_to_querystring(controls)}' width='#{width}' height='#{height}'></iframe>").html_safe
+      controls.delete('apikey')
+      
+      pad_url = "#{conf['host']}/auth_session?padName=#{URI.encode(controls['groupPad'])}&sessionID=#{session_id}"
+      return CGI::unescapeHTML("<a href='#{pad_url}' target='blank'>Pad in eigenem Fenster öffnen</a><br><iframe src='#{pad_url}' width='#{width}' height='#{height}'></iframe>").html_safe
     end
   end
 end
