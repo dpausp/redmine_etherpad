@@ -15,9 +15,28 @@ def hash_to_querystring(hash)
 end
 
 
-def etherpad_request(http, uri, endpoint, params)
-  res = http.post((uri.path.nil? ? '' : uri.path) + endpoint, hash_to_querystring(params))
+def etherpad_request(http, path, api_key, endpoint, params)
+  params['apikey'] = api_key
+  res = http.post(path + endpoint, hash_to_querystring(params))
   JSON.parse(res.body)
+end
+
+
+def make_etherpad_client(pad_host, api_key, verify_ssl)
+  uri = URI.parse(pad_host)
+  http = Net::HTTP.new(uri.host, uri.port)
+  unless uri.scheme.casecmp("https")
+    http.use_ssl = true
+  else
+    http.use_ssl = false
+  end
+  unless verify_ssl
+    http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+  end
+  
+  path = uri.path.nil? ? '' : uri.path
+  #lambda { |endpoint, params| etherpad_request(http, path, api_key, endpoint, params) }
+  method(:etherpad_request).curry[http, path, api_key]
 end
 
 
@@ -67,44 +86,31 @@ Redmine::Plugin.register :redmine_etherpad do
       end
 
       padname, *params = args
-      options = build_options(conf, params)
       api_key = conf.fetch('apiKey', 'xxx')
       verify_ssl = conf.fetch('verifySSL', true)
-
-      uri = URI.parse(conf['host'])
-      http = Net::HTTP.new(uri.host, uri.port)
-      unless uri.scheme.casecmp("https")
-        http.use_ssl = true
-      else
-        http.use_ssl = false
-      end
-      unless verify_ssl
-        http.verify_mode = OpenSSL::SSL::VERIFY_NONE
-      end
-
+      options = build_options(conf, params)
+      pad_host = conf['host']
+      pad_cl = make_etherpad_client(pad_host, api_key, verify_ssl)
 
       params = { 
-        'apikey' => api_key,
         'name' => User.current.name,
         'authorMapper' => User.current.id
       }
 
-      resdata = etherpad_request(http, uri, '/api/1/createAuthorIfNotExistsFor', params)
+      resdata = pad_cl.call('/api/1/createAuthorIfNotExistsFor', params)
       author_id = resdata['data']['authorID']
 
       params = { 
-        'apikey' => api_key, 
         'groupMapper' => obj.project.identifier
       }
-      resdata = etherpad_request(http, uri, '/api/1/createGroupIfNotExistsFor', params)
+      resdata = pad_cl.call('/api/1/createGroupIfNotExistsFor', params)
       group_id = resdata['data']['groupID']
 
       params = { 
-        'apikey' => api_key, 
         'groupID' => group_id,
         'padName' => padname 
       }
-      resdata = etherpad_request(http, uri, '/api/1/createGroupPad', params)
+      resdata = pad_cl.call('/api/1/createGroupPad', params)
 
       if resdata['code'] == 1
         group_pad = "#{group_id}$#{padname}"
@@ -116,10 +122,9 @@ Redmine::Plugin.register :redmine_etherpad do
       update_session = false
       if not cookies[:sessionID].nil?
         params = { 
-          'apikey' => api_key, 
           'sessionID' => cookies[:sessionID] 
         }
-        resdata = etherpad_request(http, uri, '/api/1/getSessionInfo', params)
+        resdata = pad_cl.call('/api/1/getSessionInfo', params)
         if resdata['code'] == 1 or resdata['data']['validUntil'].to_i <= Time.now.to_i
           update_session = true
         else
@@ -131,24 +136,24 @@ Redmine::Plugin.register :redmine_etherpad do
       if cookies[:sessionID].nil? or update_session
         expires = Time.now + 3600
         params = { 
-          'apikey' => api_key, 
           'groupID' => group_id, 
           'authorID' => author_id, 
           'validUntil' => expires.to_i 
         }
-        resdata = etherpad_request(http, uri, '/api/1/createSession', params)
+        resdata = pad_cl.call('/api/1/createSession', params)
         session_id = resdata['data']['sessionID']
 
-        cookies[:sessionID] = { :value => session_id, :host => uri.host, :expires => expires }
-        if http.use_ssl?
-          cookies[:sessionID] =  { :value => session_id, :host => uri.host, :expires => expires, :secure => true }
+        if request.ssl?
+          cookies[:sessionID] =  { :value => session_id, :host => request.host, :expires => expires, :secure => true }
+        else
+          cookies[:sessionID] = { :value => session_id, :host => request.host, :expires => expires }
         end
       end
 
       width = options.delete('width')
       height = options.delete('height')
       
-      pad_url = "#{conf['host']}/auth_session?padName=#{URI.encode(group_pad)}&sessionID=#{session_id}"
+      pad_url = "#{pad_host}/auth_session?padName=#{URI.encode(group_pad)}&sessionID=#{session_id}"
       return CGI::unescapeHTML("<a href='#{pad_url}' target='blank'>Pad in eigenem Fenster öffnen</a><br><iframe src='#{pad_url}' width='#{width}' height='#{height}'></iframe>").html_safe
     end
   end
